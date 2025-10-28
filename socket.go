@@ -24,7 +24,7 @@ type Socket interface {
 	MulticastQuorum(quorum int, m interface{})
 	
 	//将msg发送至特定ID集合
-	MulticastNode(quorum IDs, m interface{})
+	MulticastNode(quorum []ID, m interface{})
 
 	// Broadcast send to all peers
 	//全网广播
@@ -78,6 +78,80 @@ func NewSocket(id ID, addrs map[ID]string) Socket {
 
 func (s *socket) Send(to ID, m interface{}) {
 	
+	// 模拟延迟
+	mean, stddev := 500.0, 5.0
+	rand.Seed(time.Now().UnixNano()) // 设置随机种子
+	for {
+		delay := rand.NormFloat64()*stddev + mean
+		if delay >= (mean - 3 * stddev) && delay <= (mean + 3 * stddev) {
+			s.slow[to] = int(delay)
+			break
+		}
+	}
+	// if s.id.Zone() == 1 {
+	// 	if to.Zone() == 1 {
+	// 		s.slow[to] = 5 + rand.Intn(20)
+	// 	} else if to.Zone() == 2 {
+	// 		s.slow[to] = 19 + rand.Intn(20)
+	// 	}  else if to.Zone() == 3 {
+	// 		s.slow[to] = 62 + rand.Intn(20)
+	// 	}  else if to.Zone() == 4 {
+	// 		s.slow[to] = 112 + rand.Intn(20)
+	// 	}  else {
+	// 		s.slow[to] = 134 + rand.Intn(20)
+	// 	}
+	// } else if s.id.Zone() == 2 {
+	// 	if to.Zone() == 1 {
+	// 		s.slow[to] = 19 + rand.Intn(20)
+	// 	} else if to.Zone() == 2 {
+	// 		s.slow[to] = 5 + rand.Intn(20)
+	// 	}  else if to.Zone() == 3 {
+	// 		s.slow[to] = 117 + rand.Intn(20)
+	// 	}  else if to.Zone() == 4 {
+	// 		s.slow[to] = 104 + rand.Intn(20)
+	// 	}  else {
+	// 		s.slow[to] = 133 + rand.Intn(20)
+	// 	}
+	// } else if s.id.Zone() == 3 {
+	// 	if to.Zone() == 1 {
+	// 		s.slow[to] = 62 + rand.Intn(20)
+	// 	} else if to.Zone() == 2 {
+	// 		s.slow[to] = 117 + rand.Intn(20)
+	// 	}  else if to.Zone() == 3 {
+	// 		s.slow[to] = 5 + rand.Intn(20)
+	// 	}  else if to.Zone() == 4 {
+	// 		s.slow[to] = 172 + rand.Intn(20)
+	// 	}  else {
+	// 		s.slow[to] = 81 + rand.Intn(20)
+	// 	}
+	// } else if s.id.Zone() == 4 {
+	// 	if to.Zone() == 1 {
+	// 		s.slow[to] = 112 + rand.Intn(20)
+	// 	} else if to.Zone() == 2 {
+	// 		s.slow[to] = 104 + rand.Intn(20)
+	// 	}  else if to.Zone() == 3 {
+	// 		s.slow[to] = 172 + rand.Intn(20)
+	// 	}  else if to.Zone() == 4 {
+	// 		s.slow[to] = 5 + rand.Intn(20)
+	// 	}  else {
+	// 		s.slow[to] = 214 + rand.Intn(20)
+	// 	}
+	// } else {
+	// 	if to.Zone() == 1 {
+	// 		s.slow[to] = 134 + rand.Intn(20)
+	// 	} else if to.Zone() == 2 {
+	// 		s.slow[to] = 133 + rand.Intn(20)
+	// 	}  else if to.Zone() == 3 {
+	// 		s.slow[to] = 81 + rand.Intn(20)
+	// 	}  else if to.Zone() == 4 {
+	// 		s.slow[to] = 214 + rand.Intn(20)
+	// 	}  else {
+	// 		s.slow[to] = 5 + rand.Intn(20)
+	// 	}
+	// }
+	
+
+
 	//结点s.id将消息m发送至to结点
 	log.Debugf("node %s send message %+v to %v", s.id, m, to)
 
@@ -108,7 +182,7 @@ func (s *socket) Send(to ID, m interface{}) {
 		//获取目标结点to的地址
 		s.lock.RLock()
 		address, ok := s.addresses[to]
-		s.lock.Unlock()
+		s.lock.RUnlock()
 		if !ok {
 			log.Errorf("socket does not have address of node %s", to)
 			return
@@ -124,9 +198,9 @@ func (s *socket) Send(to ID, m interface{}) {
 		s.lock.Unlock()
 	}
 
-	//slow方法实现：个timer时间后发送信息m
+	//slow方法实现：timer时间后发送信息m
 	if delay, ok := s.slow[to]; ok && delay > 0 {
-		timer := time.NewTimer(time.Duration(delay) * time.Millisecond)
+		timer := time.NewTimer(time.Duration(delay) * time.Microsecond)
 		go func() {
 			<-timer.C
 			t.Send(m)
@@ -183,8 +257,8 @@ func (s *socket) MulticastQuorum(quorum int, m interface{}) {
 }
 
 //**发送消息至特定结点集
-func(s *socket) MulticastNode(quorum IDs,m interface{}){
-	for id := quorum {
+func(s *socket) MulticastNode(quorum []ID,m interface{}){
+	for _,id := range quorum {
 		if id == s.id{
 			continue
 		}

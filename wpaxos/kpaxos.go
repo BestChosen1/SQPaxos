@@ -11,31 +11,52 @@ type kpaxos struct {
 	key paxi.Key
 	*paxos.Paxos
 	paxi.Policy
+	// B_max map[paxi.Key]paxi.Ballot
 }
 
-func Q1(q *paxi.Quorum) bool {
-	if *fz == 0 {
-		return q.GridRow()
-	}
-	return q.FGridQ1(*fz)
+// func Q1(q *paxi.Quorum) bool {
+// 	// if *Fz == 0 {
+// 	// 	return q.GridRow()
+// 	// }
+// 	return q.FGridQ1(*Fz, *Fd)
+// }
+
+// func Q2(q *paxi.Quorum) bool {
+// 	// if *Fz == 0 {
+// 	// 	return q.GridColumn()
+// 	// }
+// 	return q.FGridQ2(*Fz, *Fd)
+// }
+
+// Multi-Paxos
+func Q12(q *paxi.Quorum) bool {
+	return q.SGridQ1()
 }
 
-func Q2(q *paxi.Quorum) bool {
-	if *fz == 0 {
-		return q.GridColumn()
-	}
-	return q.FGridQ2(*fz)
-}
+// // DPaxos and SQPaxos
+// func Q1(q *paxi.Quorum) bool {
+// 	return q.SGridQ1()
+// }
+
+// func Q2(q *paxi.Quorum) bool {
+// 	// if *Fz == 0 {
+// 	// 	return q.GridColumn()
+// 	// }
+// 	return q.SGridQ2(*Fz, *Fd)
+// }
+
+
 
 func newKPaxos(key paxi.Key, node paxi.Node) *kpaxos {
 	k := &kpaxos{}
 	k.Node = node
 	k.key = key
 	k.Policy = paxi.NewPolicy()
+//	k.B_max = make(map[paxi.Key]paxi.Ballot)
 
 	quorum := func(p *paxos.Paxos) {
-		p.Q1 = Q1
-		p.Q2 = Q2
+		p.Q1 = Q12
+		p.Q2 = Q12
 	}
 	k.Paxos = paxos.NewPaxos(k, quorum)
 
@@ -62,6 +83,36 @@ func (k *kpaxos) Broadcast(m interface{}) {
 	}
 }
 
+
+// MulticastNode overrides Socket interface in Node
+func (k *kpaxos) MulticastNode(quorum []paxi.ID, m interface{}) {
+	switch m := m.(type) {
+	case paxos.P1a:
+		k.Node.MulticastNode(quorum, Prepare{k.key, m})
+	case paxos.P2a:
+		k.Node.MulticastNode(quorum, Accept{k.key, m})
+	case paxos.P3:
+		k.Node.MulticastNode(quorum, Commit{k.key, m})
+	default:
+		k.Node.MulticastNode(quorum, m)
+	}
+}
+
+// // MulticastQuorum overrides Socket interface in Node
+// func (k *kpaxos) MulticastQuorum(quorum int, m interface{}) {
+// 	switch m := m.(type) {
+// 	case paxos.P1a:
+// 		k.Node.MulticastQuorum(quorum, Prepare{k.key, m})
+// 	case paxos.P2a:
+// 		k.Node.MulticastQuorum(quorum, Accept{k.key, m})
+// 	case paxos.P3:
+// 		k.Node.MulticastQuorum(quorum, Commit{k.key, m})
+// 	default:
+// 		k.Node.MulticastQuorum(quorum, m)
+// 	}
+// }
+
+
 // Send overrides Socket interface in Node
 func (k *kpaxos) Send(to paxi.ID, m interface{}) {
 	switch m := m.(type) {
@@ -73,3 +124,6 @@ func (k *kpaxos) Send(to paxi.ID, m interface{}) {
 		k.Node.Send(to, m)
 	}
 }
+
+
+

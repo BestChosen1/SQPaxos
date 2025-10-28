@@ -34,6 +34,19 @@ func (q *Quorum) NACK(id ID) {
 	}
 }
 
+func (q *Quorum) GetAcks() map[ID]bool {
+	return q.acks
+}
+
+func (q *Quorum) HaveID(ids []ID) bool {
+	for _ , id := range ids {
+		if !q.acks[id] {
+			return false
+		}
+	}
+	return true
+}
+
 // ADD increase ack size by one 
 //quorum的大小加1
 func (q *Quorum) ADD() {
@@ -104,11 +117,23 @@ func (q *Quorum) GridColumn() bool {
 	return false
 }
 
+// // FGridQ1 is flexible grid quorum for phase 1  Fpaxos第一阶段使用的quorum
+// func (q *Quorum) FGridQ1(Fz int) bool {
+// 	zone := 0
+// 	for z, n := range q.zones {
+// 		if n > config.npz[z]/2 {
+// 			//
+// 			zone++
+// 		}
+// 	}
+// 	return zone >= config.z-Fz
+// }
+
 // FGridQ1 is flexible grid quorum for phase 1  Fpaxos第一阶段使用的quorum
-func (q *Quorum) FGridQ1(Fz int) bool {
+func (q *Quorum) FGridQ1(Fz int, Fd int) bool {
 	zone := 0
 	for z, n := range q.zones {
-		if n > config.npz[z]/2 {
+		if n >= config.npz[z]-Fd {
 			//
 			zone++
 		}
@@ -116,12 +141,24 @@ func (q *Quorum) FGridQ1(Fz int) bool {
 	return zone >= config.z-Fz
 }
 
+// // FGridQ2 is flexible grid quorum for phase 2
+// func (q *Quorum) FGridQ2(Fz int) bool {
+// 	zone := 0
+// 	//没动
+// 	for z, n := range q.zones {
+// 		if n > config.npz[z]/2 {
+// 			zone++
+// 		}
+// 	}
+// 	return zone >= Fz+1
+// }
+
 // FGridQ2 is flexible grid quorum for phase 2
-func (q *Quorum) FGridQ2(Fz int) bool {
+func (q *Quorum) FGridQ2(Fz int, Fd int) bool {
 	zone := 0
 	//没动
-	for z, n := range q.zones {
-		if n > config.npz[z]/2 {
+	for _, n := range q.zones {
+		if n >= Fd+1 {
 			zone++
 		}
 	}
@@ -140,49 +177,49 @@ func (q *Quorum)SGridQ1() bool {
 
 func (q *Quorum) SGridQ2(Fz, Fn int) bool{
 	zone := 0
-	for z, n := range q.zones{
+	for _, n := range q.zones{
 		if n >= Fn+1{
 			zone++
 		}
 	}
-	return zone >=Fz +1
-}
-/*
-// Q1 returns true if config.Quorum type is satisfied
-func (q *Quorum) Q1() bool {
-	switch config.Quorum {
-	case "majority":
-		return q.Majority()
-	case "grid":
-		return q.GridRow()
-	case "fgrid":
-		return q.FGridQ1()
-	case "group":
-		return q.ZoneMajority()
-	case "count":
-		return q.size >= config.n-config.F
-	default:
-		log.Error("Unknown quorum type")
-		return false
-	}
+	return zone >= Fz +1
 }
 
-// Q2 returns true if config.Quorum type is satisfied
-func (q *Quorum) Q2() bool {
-	switch config.Quorum {
-	case "majority":
-		return q.Majority()
-	case "grid":
-		return q.GridColumn()
-	case "fgrid":
-		return q.FGridQ2()
-	case "group":
-		return q.ZoneMajority()
-	case "count":
-		return q.size > config.F
-	default:
-		log.Error("Unknown quorum type")
-		return false
-	}
-}
-*/
+
+// // Q1 returns true if config.Quorum type is satisfied
+// func (q *Quorum) Q1() bool {
+// 	switch config.Quorum {
+// 	case "majority":
+// 		return q.Majority()
+// 	case "grid":
+// 		return q.GridRow()
+// 	case "fgrid":
+// 		return q.FGridQ1()
+// 	case "group":
+// 		return q.ZoneMajority()
+// 	case "count":
+// 		return q.size >= config.n-config.F
+// 	default:
+// 		log.Error("Unknown quorum type")
+// 		return false
+// 	}
+// }
+
+// // Q2 returns true if config.Quorum type is satisfied
+// func (q *Quorum) Q2() bool {
+// 	switch config.Quorum {
+// 	case "majority":
+// 		return q.Majority()
+// 	case "grid":
+// 		return q.GridColumn()
+// 	case "fgrid":
+// 		return q.FGridQ2()
+// 	case "group":
+// 		return q.ZoneMajority()
+// 	case "count":
+// 		return q.size > config.F
+// 	default:
+// 		log.Error("Unknown quorum type")
+// 		return false
+// 	}
+// }

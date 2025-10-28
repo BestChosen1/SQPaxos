@@ -91,6 +91,9 @@ func (c Config) Z() int {
 	return c.z
 }
 
+func (c Config) NPZ() map[int]int{
+	return c.npz
+}
 // String is implemented to print the config
 //String():字符串化config
 func (c Config) String() string {

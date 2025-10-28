@@ -47,6 +47,7 @@ func NewPolicy() Policy {
 	}
 }
 
+// consecutive 连续的；不间断的
 type consecutive struct {
 	last ID
 	hits int
@@ -117,11 +118,11 @@ func (e *ema) Hit(id ID) ID {
 	}
 
 	e.s = e.alpha*float64(id.Zone()) + (1-e.alpha)*e.s
-	if math.Abs(e.s-math.Round(e.s)) > e.epsilon {
+	if math.Abs(e.s-math.Floor(e.s+0.5)) > e.epsilon {
 		// no signifigant changes
 		return ""
 	}
-	z := int(math.Round(e.s))
+	z := int(math.Floor(e.s+0.5))
 	if z != e.zone {
 		// new zone value
 		e.zone = z
@@ -135,3 +136,9 @@ type null struct{}
 func (n *null) Hit(id ID) ID {
 	return ""
 }
+
+
+// type statezone struct {
+// 	hits  map[Zone]int
+	
+// }

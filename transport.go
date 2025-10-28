@@ -19,7 +19,7 @@ var scheme = flag.String("transport", "tcp", "transport scheme (tcp, udp, chan),
 
 // Transport = transport + pipe + client + server
 type Transport interface {
-	// Scheme returns tranport scheme
+	// Scheme returns transport scheme
 	Scheme() string
 
 	// Send sends message into t.send chan

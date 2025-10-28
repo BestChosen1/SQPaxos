@@ -30,6 +30,17 @@ func VMax(v ...int) int {
 	return max
 }
 
+//ID数组中是否存在指定id
+func Exists(id ID, ids []ID) bool {
+	for _, i := range ids {
+		if id.Zone() == i.Zone() && id.Node() == i.Node() {
+			return true
+		}
+	}
+
+	return false
+}
+
 //重试attempt次后 函数f的错误信息
 // Retry function f sleep time between attempts
 func Retry(f func() error, attempts int, sleep time.Duration) error {
@@ -73,7 +84,7 @@ func Schedule(f func(), delay time.Duration) chan bool {
 	return stop
 }
 
-//连接master，
+// 连接master，
 // ConnectToMaster connects to master node and set global Config
 func ConnectToMaster(addr string, client bool, id ID) {
 	//net.Dial是在指定网络上连接指定地址。

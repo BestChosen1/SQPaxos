@@ -58,7 +58,7 @@ func (c *checker) match(read *operation) *operation {
 	return nil
 }
 
-//合并merge():匹配写入继承边读取
+// 合并merge():匹配写入继承边读取
 // matched write inherits edges read
 func (c *checker) merge(read, write *operation) {
 	//遍历指向read操作的operations s

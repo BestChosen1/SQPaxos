@@ -36,7 +36,7 @@ type AdminClient interface {
 type HTTPClient struct {
 	//config.Addrs 所有地址
 	Addrs  map[ID]string
-	//onfig.HTTPAddrs,
+	//config.HTTPAddrs,
 	HTTP   map[ID]string
 	ID     ID  // client id use the same id as servers in local site
 	N      int // total number of nodes
@@ -237,7 +237,7 @@ func (c *HTTPClient) MultiGet(n int, key Key) ([]Value, []map[string]string) {
 	return values, metas
 }
 
-//从本地N/2个 结点中读取value
+//从本地N/2+1个 结点中读取value
 func (c *HTTPClient) LocalQuorumGet(key Key) ([]Value, []map[string]string) {
 	valueC := make(chan Value)
 	metaC := make(chan map[string]string)

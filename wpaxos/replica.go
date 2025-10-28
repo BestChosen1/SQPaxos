@@ -10,19 +10,27 @@ import (
 //adaptive是能stable leader 模式
 var adaptive = flag.Bool("adaptive", true, "stable leader, if true paxos forward request to current leader")
 //fz是能容忍故障的zone数
-var fz = flag.Int("fz", 0, "f_z fault tolerent zones")
+var Fz = flag.Int("Fz", 0, "F_z fault tolerent zones")
+//fd是每个区域中能容忍故障的node数
+var Fd = flag.Int("Fd", 1, "F_d fault tolerent nodes per zone")
+// // 每个区域单次处理的最大请求数
+// var nums = flag.Int("nums", 1000, "max requests operated per zone once")
+
 
 // Replica is WPaxos replica node
 type Replica struct {
 	paxi.Node
 	paxi map[paxi.Key]*kpaxos
+	
+	// n_request int
 }
 
-// NewReplica create new Replica instance
+// NewReplica creates new Replica instance
 func NewReplica(id paxi.ID) *Replica {
 	r := new(Replica)
 	r.Node = paxi.NewNode(id)
 	r.paxi = make(map[paxi.Key]*kpaxos)
+	// r.n_request = 0
 
 	r.Register(paxi.Request{}, r.handleRequest)
 	r.Register(paxi.Transaction{}, r.handleTransaction)
@@ -37,7 +45,7 @@ func NewReplica(id paxi.ID) *Replica {
 
 //初始化key对应的KPaxos
 func (r *Replica) init(key paxi.Key) {
-	//存在key对应的的kpaxos
+	//不存在key对应的kpaxos
 	if _, exists := r.paxi[key]; !exists {
 		r.paxi[key] = newKPaxos(key, r.Node)
 	}
@@ -49,25 +57,49 @@ func (r *Replica) handleRequest(m paxi.Request) {
 	r.init(key)
 
 	p := r.paxi[key]
-	if *adaptive {
-		if p.IsLeader() || p.Ballot() == 0 {
-			p.HandleRequest(m)
-			//to是m对应的leadership转移的目标nodeID
-			to := p.Hit(m.NodeID)
-			if to != "" && to.Zone() != r.ID().Zone() {
-				p.Send(to, LeaderChange{
-					Key:    key,
-					To:     to,
-					From:   r.ID(),
-					Ballot: p.Ballot(),
-				})
-			}
-		} else {
-			go r.Forward(p.Leader(), m)
-		}
-	} else {
-		p.HandleRequest(m)
-	}
+	p.HandleRequest(m)
+	// p.SetOpz(m.Command.ClientID.Zone())
+	// if *adaptive {
+	// 	if p.IsLeader() || p.Ballot() == 0 {
+	// 		p.HandleRequest(m)
+	// 		// // r.n_request++;
+	// 		// // to := p.Hit(m.NodeID)
+	// 		// // p.SetOpz(to.Zone())
+	// 		// if(r.n_request > *nums){
+	// 		// 	Max_Z := 0
+	// 		// 	Max_N := 0
+	// 		// 	for zone,num := range p.Opz() {
+	// 		// 		if num > Max_N{
+	// 		// 			Max_N = num
+	// 		// 			Max_Z = zone
+	// 		// 		}
+	// 		// 	}
+	// 		// 	aim := p.Hit(paxi.NewID(Max_Z,1))
+	// 		// 	if aim != "" && aim.Zone() != r.ID().Zone() {
+	// 		// 		p.Send(aim, LeaderChange{
+	// 		// 			Key:    key,
+	// 		// 			To:     aim,
+	// 		// 			From:   r.ID(),
+	// 		// 			Ballot: p.Ballot(),
+	// 		// 		})
+	// 		// 	}
+	// 		// //to是m对应的leadership转移的目标nodeID
+	// 		// to := p.Hit(m.NodeID)
+	// 		// if to != "" && to.Zone() != r.ID().Zone() {
+	// 		// 	p.Send(to, LeaderChange{
+	// 		// 		Key:    key,
+	// 		// 		To:     to,
+	// 		// 		From:   r.ID(),
+	// 		// 		Ballot: p.Ballot(),
+	// 		// 	})
+	// 		// }
+	// 		} else {
+	// 				go r.Forward(p.Leader(), m)
+	// 		}
+	// 	} else {
+	// 			p.HandleRequest(m)
+	// 	}
+	// }
 }
 
 func (r *Replica) handleTransaction(m paxi.Transaction) {
@@ -111,6 +143,15 @@ func (r *Replica) handleLeaderChange(m LeaderChange) {
 		p.P1a()
 	}
 }
+
+// func (r *Replica) handleUpdateBallot(m UpdateBallot){
+// 	log.Debugf("Replica %s ===[%v]===>>> Replica %s\n", m.Ballot.ID(), m, r.ID())
+// 	r.init(m.Key)
+// 	p := r.paxi[m.Key];
+// 	if p.B_max[m.key] < m.Ballot {
+// 		p.B_max[m.key] = m.Ballot
+// 	}
+// }
 
 func (r *Replica) keys() int {
 	sum := 0

@@ -28,7 +28,7 @@ func NewBallotFromString(b string) Ballot {
 		s = b
 	}
 
-	//String 转成10进制的int64格式
+	//String 转成10进制的uint64格式
 	n, err := strconv.ParseUint(s, 10, 64)
 	if err != nil {
 		log.Errorf("Failed to convert counter %s to uint64\n", s)

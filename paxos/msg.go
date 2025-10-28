@@ -18,9 +18,15 @@ func init() {
 // P1a prepare message
 type P1a struct {
 	Ballot paxi.Ballot
+	// Intent []paxi.ID
 }
 
-//字符串化p1a
+// //字符串化P1a
+// func (m P1a) String() string {
+// 	return fmt.Sprintf("P1a {b=%v firstnode=%v secondnode=%v}", m.Ballot, m.Intent[0], m.Intent[1])
+// }
+
+//字符串化P1a
 func (m P1a) String() string {
 	return fmt.Sprintf("P1a {b=%v}", m.Ballot)
 }
@@ -31,33 +37,49 @@ type CommandBallot struct {
 	Ballot  paxi.Ballot
 }
 
-//字符串化commandBallot
+//字符串化CommandBallot
 func (cb CommandBallot) String() string {
 	return fmt.Sprintf("cmd=%v b=%v", cb.Command, cb.Ballot)
 }
 
 // P1b promise message
 type P1b struct {
-	//p1b message的 ballot
+	//P1b message的 ballot
 	Ballot paxi.Ballot
-	//发送p1b的node ID
+	//发送P1b的node ID
 	ID     paxi.ID               // from node id
 	//已接受的command和 ballot
 	Log    map[int]CommandBallot // uncommitted logs
+	// 存储的意图
+	// Intent Intent
+	// 最高ballot
+	// MaxBallot paxi.Ballot
+	// Intent []paxi.ID
 }
 
-//字符串化p1b
+// //字符串化P1b
+// func (m P1b) String() string {
+// 	return fmt.Sprintf("P1b {b=%v id=%s log=%v firstnode=%v secondnode=%v}", m.Ballot, m.ID, m.Log,  m.Intent[0], m.Intent[1])
+// }
+
+//字符串化P1b
+// func (m P1b) String() string {
+// 	return fmt.Sprintf("P1b {b=%v id=%s log=%v maxb=%v}", m.Ballot, m.ID, m.Log, m.MaxBallot)
+// }
+
+//字符串化P1b
 func (m P1b) String() string {
 	return fmt.Sprintf("P1b {b=%v id=%s log=%v}", m.Ballot, m.ID, m.Log)
 }
 
+
 // P2a accept message
 type P2a struct {
-	//p2b message的Ballot
+	//P2a message的Ballot
 	Ballot  paxi.Ballot
 	//slot是log slot
 	Slot    int
-	//要发送的command
+	//要发送的Command
 	Command paxi.Command
 }
 
@@ -85,6 +107,7 @@ type P3 struct {
 	Ballot  paxi.Ballot
 	Slot    int
 	Command paxi.Command
+	// MaxBallot paxi.Ballot
 }
 
 func (m P3) String() string {

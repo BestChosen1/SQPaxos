@@ -209,7 +209,7 @@ func (b *Benchmark) Run() {
 }
 
 // generates key based on distribution；
-//根据不同的分布式策略生key
+// 根据不同的分布式策略生成key
 func (b *Benchmark) next() int {
 	var key int
 	switch b.Distribution {
