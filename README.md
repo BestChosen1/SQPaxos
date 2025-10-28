@@ -1,6 +1,4 @@
-[![GoDoc](https://godoc.org/github.com/ailidani/paxi?status.svg)](https://godoc.org/github.com/ailidani/paxi)
-[![Go Report Card](https://goreportcard.com/badge/github.com/ailidani/paxi)](https://goreportcard.com/report/github.com/ailidani/paxi)
-[![Build Status](https://travis-ci.org/ailidani/paxi.svg?branch=master)](https://travis-ci.org/ailidani/paxi)
+
 
 
 ## What is Paxi?
@@ -9,33 +7,6 @@
 
 *Warning*: Paxi project is still under heavy development, with more features and protocols to include. Paxi API may change too.
 
-
-## What is WPaxos?
-
-**WPaxos** is a multileader Paxos protocol that provides low-latency and high-throughput consensus across wide-area network (WAN) deployments. Unlike statically partitioned multiple Paxos deployments, WPaxos perpetually adapts to the changing access locality through object stealing. Multiple concurrent leaders coinciding in different zones steal ownership of objects from each other using phase-1 of Paxos, and then use phase-2 to commit update-requests on these objects locally until they are stolen by other leaders. To achieve fast phase-2 commits, WPaxos adopts the flexible quorums idea in a novel manner, and appoints phase-2 acceptors to be close to their respective leaders.
-
-WPaxos (WAN Paxos) paper (first version) can be found in https://arxiv.org/abs/1703.08905.
-
-## What is included?
-
-Algorithms:
-- [x] Classical multi-Paxos
-- [x] [Flexible Paxos](https://dl.acm.org/citation.cfm?id=3139656)
-- [x] [WPaxos](https://arxiv.org/abs/1703.08905)
-- [x] [EPaxos](https://dl.acm.org/citation.cfm?id=2517350)
-- [x] [SDPaxos](https://www.microsoft.com/en-us/research/uploads/prod/2018/09/172-zhao.pdf)
-- [x] Atomic Storage ([Majority Replication](http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.174.7245&rep=rep1&type=pdf))
-- [x] [Chain Replication](https://www.cs.cornell.edu/home/rvr/papers/OSDI04.pdf)
-- [x] KPaxos (Static partitioned Paxos)
-- [x] [Dynamo Key-value Store](https://dl.acm.org/citation.cfm?id=1294281)
-- [x] [WanKeeper](http://ieeexplore.ieee.org/abstract/document/7980095/)
-- [x] [Vertical Paxos](https://www.microsoft.com/en-us/research/wp-content/uploads/2009/08/Vertical-Paxos-and-Primary-Backup-Replication-.pdf)
-
-
-Features:
-- [x] Benchmarking
-- [x] Linerizability checker
-- [x] Fault injection
 
 
 # How to build
