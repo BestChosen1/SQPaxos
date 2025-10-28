@@ -8,7 +8,6 @@
 *Warning*: Paxi project is still under heavy development, with more features and protocols to include. Paxi API may change too.
 
 
-
 # How to build
 
 1. Install [Go](https://golang.org/dl/).
@@ -55,44 +54,3 @@ Each executable file expects some parameters which can be seen by `-help` flag, 
 When flag `id` is absent, client will randomly select any server for each operation.
 
 The algorithms can also be running in **simulation** mode, where all nodes are running in one process and transport layer is replaced by Go channels. Check [`simulation.sh`](https://github.com/ailidani/paxi/blob/master/bin/simulation.sh) script on how to run.
-
-
-# How to implement algorithms in Paxi
-
-Replication algorithm in Paxi follows the message passing model, where several message types and their handle function are registered. We use [Paxos](https://github.com/ailidani/paxi/tree/master/paxos) as an example for our step-by-step tutorial.
-
-1. Define messages, register with gob in `init()` function if using gob codec. As show in [`msg.go`](https://github.com/ailidani/paxi/blob/master/paxos/msg.go).
-
-2. Define a `Replica` structure embeded with `paxi.Node` interface.
-```go
-type Replica struct {
-	paxi.Node
-	*Paxos
-}
-```
-
-Define handle function for each message type. For example, to handle client `Request`
-```go
-func (r *Replica) handleRequest(m paxi.Request) {
-	if *adaptive {
-		if r.Paxos.IsLeader() || r.Paxos.Ballot() == 0 {
-			r.Paxos.HandleRequest(m)
-		} else {
-			go r.Forward(r.Paxos.Leader(), m)
-		}
-	} else {
-		r.Paxos.HandleRequest(m)
-	}
-
-}
-```
-
-3. Register the messages with their handle function using `Node.Register(interface{}, func())` interface in `Replica` constructor.
-
-Replica use `Send(to ID, msg interface{})`, `Broadcast(msg interface{})` functions in Node.Socket to send messages.
-
-For data-store related functions check `db.go` file.
-
-For quorum types check `quorum.go` file.
-
-Client uses a simple RESTful API to submit requests. GET method with URL "http://ip:port/key" will read the value of given key. POST method with URL "http://ip:port/key" and body as the value, will write the value to key.
